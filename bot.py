@@ -8,19 +8,25 @@ from dotenv import load_dotenv
 
 # --- keepalive web server for Replit ---
 from flask import Flask
-import threading
+import threading, os
 
 app = Flask(__name__)
-@app.get("/")
+
+# answer both GET and HEAD cleanly
+@app.route("/", methods=["GET", "HEAD"])
 def home():
-    return "ok"
+    return "ok", 200
+
+@app.route("/health", methods=["GET", "HEAD"])
+def health():
+    return "ok", 200
 
 def run_keepalive():
-    # Replit exposes a public URL; UptimeRobot will ping this to keep the repl awake
-    app.run(host="0.0.0.0", port=3000)
+    port = int(os.getenv("PORT", "3000"))  # <-- use Replit's port if provided
+    app.run(host="0.0.0.0", port=port)
 
-# Start the keepalive web server in the background
 threading.Thread(target=run_keepalive, daemon=True).start()
+
 
 # --- env ---
 load_dotenv()
