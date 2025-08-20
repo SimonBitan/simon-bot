@@ -68,7 +68,7 @@ def is_cmd(content: str, name: str) -> bool:
     name = name.strip().lower()
     return content == name or content.startswith(name + " ")
 
-async def resolve_bday_channel(fallback: discord.abc.MessageableChannel | None = None):
+async def resolve_bday_channel(fallback: discord.abc.Messageable | None = None):
     """Prefer BDAY_CHANNEL_ID, then #bots, then #general, else fallback."""
     if BDAY_CHANNEL_ID:
         try:
@@ -85,7 +85,7 @@ async def resolve_bday_channel(fallback: discord.abc.MessageableChannel | None =
         return ch
     return fallback
 
-async def run_check_birthdays_once(target_channel: discord.abc.MessageableChannel | None = None):
+async def run_check_birthdays_once(target_channel: discord.abc.Messageable | None = None):
     """Check today's birthdays and post once. If target_channel is provided, reply there."""
     try:
         today_md = datetime.date.today().strftime("%m-%d")
