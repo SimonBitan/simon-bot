@@ -69,7 +69,10 @@ def is_cmd(content: str, name: str) -> bool:
     return content == name or content.startswith(name + " ")
 
 async def resolve_bday_channel(fallback: discord.abc.Messageable | None = None):
-    """Prefer BDAY_CHANNEL_ID, then #bots, then #general, else fallback."""
+    """Prefer #general, then BDAY_CHANNEL_ID, then #bots, else fallback."""
+    ch = discord.utils.get(client.get_all_channels(), name="general")
+    if ch:
+        return ch
     if BDAY_CHANNEL_ID:
         try:
             ch = client.get_channel(int(BDAY_CHANNEL_ID))
@@ -78,9 +81,6 @@ async def resolve_bday_channel(fallback: discord.abc.Messageable | None = None):
         except ValueError:
             print("BDAY_CHANNEL_ID is not a valid integer.")
     ch = discord.utils.get(client.get_all_channels(), name="bots")
-    if ch:
-        return ch
-    ch = discord.utils.get(client.get_all_channels(), name="general")
     if ch:
         return ch
     return fallback
@@ -93,7 +93,7 @@ async def run_check_birthdays_once(target_channel: discord.abc.Messageable | Non
         channel = await resolve_bday_channel(fallback=target_channel)
 
         if channel is None:
-            print("No channel found to post birthdays; set BDAY_CHANNEL_ID or create #bots/#general.")
+            print("No channel found to post birthdays; set BDAY_CHANNEL_ID or create #general/#bots.")
             if target_channel is not None:
                 await target_channel.send("⚠️ I couldn’t find a channel to post in. Set `BDAY_CHANNEL_ID`.")
             return
@@ -134,6 +134,12 @@ async def on_message(msg: discord.Message):
     if is_cmd(content, "!checkbirthdays"):
         print(f"Manual !checkbirthdays requested in channel {msg.channel.id}")
         await run_check_birthdays_once(target_channel=msg.channel)
+
+    # NEW: manual trigger for the daily job (runs the same logic)
+    if is_cmd(content, "!testautocheck"):
+        print(f"Manual !testautocheck requested in channel {msg.channel.id}")
+        await run_check_birthdays_once(target_channel=msg.channel)
+        await msg.channel.send("✅ Autocheck run completed.")
 
     if is_cmd(content, "!reloadbirthdays"):
         load_birthdays_from_csv()
